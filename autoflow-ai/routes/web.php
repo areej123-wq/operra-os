@@ -1,15 +1,41 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'welcome')->name('home');
-
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('/dashboard', 'dashboard')
-        ->name('dashboard');
-
-    Route::inertia('/processes/create', 'processes/create')
-        ->name('processes.create');
+Route::get('/', function () {
+    return view('welcome');
 });
 
-require __DIR__.'/settings.php';
+Route::middleware('guest')->group(function () {
+    Route::get('/register', [RegisterController::class, 'create'])
+        ->name('register');
+
+    Route::post('/register', [RegisterController::class, 'store'])
+        ->name('register.store');
+
+    Route::get('/login', [LoginController::class, 'create'])
+        ->name('login');
+
+    Route::post('/login', [LoginController::class, 'store'])
+        ->name('login.store');
+});
+
+Route::middleware('auth')->group(function () {
+
+    Route::get('/candidate/dashboard', function () {
+        return view('candidate.dashboard');
+    })->name('candidate.dashboard');
+
+    Route::get('/employer/dashboard', function () {
+        return view('employer.dashboard');
+    })->name('employer.dashboard');
+
+    Route::get('/admin/dashboard', function () {
+        return view('admin.dashboard');
+    })->name('admin.dashboard');
+
+    Route::post('/logout', [LoginController::class, 'destroy'])
+        ->name('logout');
+});
