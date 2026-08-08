@@ -4,8 +4,19 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use Illuminate\Support\Facades\Route;
 
+
 Route::get('/', function () {
-    return view('welcome');
+
+    if (auth()->check()) {
+
+        return match (auth()->user()->role) {
+            'admin' => redirect()->route('admin.dashboard'),
+            'employer' => redirect()->route('employer.dashboard'),
+            default => redirect()->route('candidate.dashboard'),
+        };
+    }
+
+    return redirect()->route('login');
 });
 
 Route::middleware('guest')->group(function () {
@@ -14,6 +25,7 @@ Route::middleware('guest')->group(function () {
 
     Route::post('/register', [RegisterController::class, 'store'])
         ->name('register.store');
+    
 
     Route::get('/login', [LoginController::class, 'create'])
         ->name('login');
