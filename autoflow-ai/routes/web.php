@@ -3,7 +3,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\CandidateProfileController;
 
 Route::get('/', function () {
 
@@ -50,4 +50,10 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/logout', [LoginController::class, 'destroy'])
         ->name('logout');
+
+        Route::get('/candidate/profile', [CandidateProfileController::class, 'edit'])
+    ->name('candidate.profile');
+
+Route::put('/candidate/profile', [CandidateProfileController::class, 'update'])
+    ->name('candidate.profile.update');
 });

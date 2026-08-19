@@ -1,28 +1,52 @@
 <?php
 
-namespace App\Models;
+namespace App\Http\Controllers;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\CandidateProfile;
+use Illuminate\Http\Request;
 
-class CandidateProfile extends Model
+class CandidateProfileController extends Controller
 {
-    protected $fillable = [
-        'user_id',
-        'headline',
-        'bio',
-        'location',
-        'work_preference',
-        'availability',
-        'expected_salary',
-        'linkedin_url',
-        'github_url',
-        'portfolio_url',
-        'cv_path',
-        'verification_status',
-    ];
-
-    public function user()
+    public function edit()
     {
-        return $this->belongsTo(User::class);
+        $profile = CandidateProfile::firstOrCreate(
+            ['user_id' => auth()->id()],
+            ['verification_status' => 'draft']
+        );
+
+        return view('candidate.profile', compact('profile'));
+    }
+
+    public function update(Request $request)
+    {
+        $validated = $request->validate([
+            'headline' => ['nullable', 'string', 'max:255'],
+            'bio' => ['nullable', 'string', 'max:2000'],
+            'location' => ['nullable', 'string', 'max:255'],
+            'work_preference' => ['nullable', 'in:remote,hybrid,onsite'],
+            'availability' => ['nullable', 'string', 'max:255'],
+            'expected_salary' => ['nullable', 'integer', 'min:0'],
+
+            'linkedin_url' => ['nullable', 'url'],
+            'github_url' => ['nullable', 'url'],
+            'portfolio_url' => ['nullable', 'url'],
+
+            'cv' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:5120'],
+        ]);
+
+        $profile = CandidateProfile::firstOrCreate([
+            'user_id' => auth()->id(),
+        ]);
+
+        if ($request->hasFile('cv')) {
+            $validated['cv_path'] = $request->file('cv')
+                ->store('candidate-cvs', 'public');
+        }
+
+        unset($validated['cv']);
+
+        $profile->update($validated);
+
+        return back()->with('success', 'Profile updated successfully.');
     }
 }
